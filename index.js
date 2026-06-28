@@ -12,9 +12,13 @@ let db;
 
 async function connectDB() {
     try {
-        db = await mysql.createConnection(
-            process.env.DATABASE_URL
-        );
+        db = await mysql.createConnection({
+            host: process.env.MYSQLHOST,
+            user: process.env.MYSQLUSER,
+            password: process.env.MYSQLPASSWORD,
+            database: process.env.MYSQLDATABASE,
+            port: process.env.MYSQLPORT
+    });
 
         console.log("MySQL Connected!");
 
