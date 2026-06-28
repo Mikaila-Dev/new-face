@@ -19,6 +19,8 @@ async function connectDB() {
             database: process.env.MYSQLDATABASE,
             port: process.env.MYSQLPORT
     });
+    console.log(process.env.MYSQLHOST);
+console.log(process.env.MYSQLPORT);
 
         console.log("MySQL Connected!");
 
