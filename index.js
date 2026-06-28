@@ -10,6 +10,7 @@ app.use(cors());
 
 let db;
 
+// Connect Database
 async function connectDB() {
     try {
         db = await mysql.createConnection({
@@ -17,10 +18,8 @@ async function connectDB() {
             user: process.env.MYSQLUSER,
             password: process.env.MYSQLPASSWORD,
             database: process.env.MYSQLDATABASE,
-            port: process.env.MYSQLPORT
-    });
-    console.log(process.env.MYSQLHOST);
-console.log(process.env.MYSQLPORT);
+            port: Number(process.env.MYSQLPORT)
+        });
 
         console.log("MySQL Connected!");
 
@@ -39,6 +38,12 @@ console.log(process.env.MYSQLPORT);
     }
 }
 
+// Home Route
+app.get("/", (req, res) => {
+    res.send("Backend is running successfully.");
+});
+
+// Save User
 app.post("/api", async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -61,6 +66,7 @@ app.post("/api", async (req, res) => {
     }
 });
 
+// Get Users
 app.get("/api/admin", async (req, res) => {
     try {
         const [rows] = await db.execute(
