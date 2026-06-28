@@ -26,7 +26,9 @@ async function connectDB() {
             port: Number(process.env.MYSQLPORT)
         });
 
-        console.log("MySQL Connected!");
+            console.log("HOST:", process.env.MYSQLHOST);
+    console.log("PORT:", process.env.MYSQLPORT);
+    console.log("USER:", process.env.MYSQLUSER);
 
         await db.execute(`
             CREATE TABLE IF NOT EXISTS users (
