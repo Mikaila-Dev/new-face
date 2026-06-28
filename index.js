@@ -13,6 +13,11 @@ let db;
 // Connect Database
 async function connectDB() {
     try {
+        console.log("MYSQLHOST:", process.env.MYSQLHOST);
+        console.log("MYSQLPORT:", process.env.MYSQLPORT);
+        console.log("MYSQLUSER:", process.env.MYSQLUSER);
+        console.log("MYSQLDATABASE:", process.env.MYSQLDATABASE);
+
         db = await mysql.createConnection({
             host: process.env.MYSQLHOST,
             user: process.env.MYSQLUSER,
@@ -32,6 +37,7 @@ async function connectDB() {
         `);
 
         console.log("Table Created!");
+
     } catch (error) {
         console.error("Database Error:", error);
         process.exit(1);
@@ -60,6 +66,7 @@ app.post("/api", async (req, res) => {
         );
 
         res.send("Successful");
+
     } catch (error) {
         console.error(error);
         res.status(500).send("Server Error");
@@ -74,6 +81,7 @@ app.get("/api/admin", async (req, res) => {
         );
 
         res.json(rows);
+
     } catch (error) {
         console.error(error);
         res.status(500).send("Server Error");
