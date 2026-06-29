@@ -13,84 +13,94 @@ let db;
 // Connect Database
 async function connectDB() {
     try {
-        console.log("MYSQLHOST:", process.env.MYSQLHOST);
-        console.log("MYSQLPORT:", process.env.MYSQLPORT);
-        console.log("MYSQLUSER:", process.env.MYSQLUSER);
-        console.log("MYSQLDATABASE:", process.env.MYSQLDATABASE);
-
-        db = await mysql.createConnection({
-            host: process.env.MYSQLHOST,
-            user: process.env.MYSQLUSER,
-            password: process.env.MYSQLPASSWORD,
-            database: process.env.MYSQLDATABASE,
-            port: Number(process.env.MYSQLPORT)
-        });
-
-            console.log("HOST:", process.env.MYSQLHOST);
-    console.log("PORT:", process.env.MYSQLPORT);
-    console.log("USER:", process.env.MYSQLUSER);
-
-        await db.execute(`
-            CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(100) NOT NULL,
-                password VARCHAR(255) NOT NULL
-            )
-        `);
-
-        console.log("Table Created!");
-
-    } catch (error) {
-        console.error("Database Error:", error);
-        process.exit(1);
-    }
-}
-
-// Home Route
-app.get("/", (req, res) => {
-    res.send("Backend is running successfully.");
-});
-
-// Save User
-app.post("/api", async (req, res) => {
-    try {
-        const { username, password } = req.body;
-
-        if (!username || !password) {
-            return res.status(400).send("All fields are required");
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        await db.execute(
-            "INSERT INTO users (username, password) VALUES (?, ?)",
-            [username, hashedPassword]
+        db = await mysql.createConnection(
+            "mysql://root:PDGSxJXaIQOWeKVqrGhIUiPbuZuAwwNo@reseau.proxy.rlwy.net:33677/railway"
         );
 
-        res.send("Successful");
+        console.log("Database Connected!");
 
     } catch (error) {
         console.error(error);
-        res.status(500).send("Server Error");
+    }
+}
+
+// Home
+app.get("/", (req, res) => {
+    res.send("Server Running");
+});
+
+// Register User
+app.post("/api", async (req, res) => {
+    try {
+        const { name, password } = req.body;
+
+        if (!name || !password) {
+            return res.status(400).send("All fields are required");
+        }
+
+        // Check existing user
+        const [user] = await db.execute(
+            "SELECT * FROM users WHERE name = ?",
+            [name]
+        );
+
+        if (user.length > 0) {
+            return res.status(400).send("User already exists");
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Save user
+        await db.execute(
+            "INSERT INTO users (name, password) VALUES (?, ?)",
+            [name, hashedPassword]
+        );
+
+        res.send("User saved successfully");
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error.message);
     }
 });
 
-// Get Users
+// Get users
 app.get("/api/admin", async (req, res) => {
     try {
         const [rows] = await db.execute(
-            "SELECT id, username FROM users"
+            "SELECT id, name FROM users"
         );
 
         res.json(rows);
 
     } catch (error) {
         console.error(error);
-        res.status(500).send("Server Error");
+        res.status(500).send(error.message);
     }
 });
 
-const PORT = process.env.PORT || 5001;
+// Show table structure
+app.get("/table", async (req, res) => {
+    try {
+        const [rows] = await db.execute(
+            "DESCRIBE users"
+        );
+
+        res.json(rows);
+
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+// connectDB().then(() => {
+//     app.listen(3000, () => {
+//         console.log("Server running on port 3000");
+//     });
+// });
+
+const PORT = process.env.PORT || 3000;
 
 connectDB().then(() => {
     app.listen(PORT, () => {
