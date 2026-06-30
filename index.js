@@ -27,7 +27,7 @@ async function connectDB() {
         process.exit(1);
     }
 }
-
+//all
 // Home Route
 app.get("/", (req, res) => {
     res.send("Backend is running...");
