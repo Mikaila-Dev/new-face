@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2/promise");
-const bcrypt = require("bcrypt");
 
 const app = express();
 
@@ -9,12 +8,11 @@ app.use(express.json());
 
 app.use(cors({
     origin: "http://localhost:5173"
-    // Idan ka deploy frontend, ka maye gurbin wannan da URL ɗinsa.
 }));
 
 let db;
 
-// Connect to MySQL
+// Connect Database
 async function connectDB() {
     try {
         db = await mysql.createConnection(
@@ -27,7 +25,7 @@ async function connectDB() {
         process.exit(1);
     }
 }
-//all
+
 // Home Route
 app.get("/", (req, res) => {
     res.send("Backend is running...");
@@ -44,21 +42,30 @@ app.post("/api", async (req, res) => {
             });
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Save to database
         const sql = "INSERT INTO users (email, password) VALUES (?, ?)";
 
-        const [result] = await db.query(sql, [
-            email,
-            hashedPassword
-        ]);
+        const [result] = await db.query(sql, [email, password]);
 
         res.status(201).json({
             message: "User saved successfully",
             id: result.insertId
         });
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
+});
+
+// Get All Users
+app.get("/users", async (req, res) => {
+    try {
+        const [users] = await db.query("SELECT * FROM users");
+
+        res.status(200).json(users);
 
     } catch (error) {
         console.error(error);
@@ -76,11 +83,6 @@ connectDB().then(() => {
         console.log(`🚀 Server running on port ${PORT}`);
     });
 });
-
-
-
-
-
 
 
 
