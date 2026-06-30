@@ -6,109 +6,84 @@ const bcrypt = require("bcrypt");
 const app = express();
 
 app.use(express.json());
-// app.use(cors());
 
 app.use(cors({
     origin: "http://localhost:5173"
+    // Idan ka deploy frontend, ka maye gurbin wannan da URL ɗinsa.
 }));
 
 let db;
 
-// Connect Database
+// Connect to MySQL
 async function connectDB() {
     try {
         db = await mysql.createConnection(
             "mysql://root:PDGSxJXaIQOWeKVqrGhIUiPbuZuAwwNo@reseau.proxy.rlwy.net:33677/railway"
         );
 
-        console.log("Database Connected!");
-
+        console.log("✅ Database connected");
     } catch (error) {
-        console.error(error);
+        console.error("❌ Database connection failed:", error.message);
+        process.exit(1);
     }
 }
 
-// Home
+// Home Route
 app.get("/", (req, res) => {
-    res.send("Server Running");
+    res.send("Backend is running...");
 });
 
 // Register User
 app.post("/api", async (req, res) => {
     try {
-        const { name, password } = req.body;
+        const { email, password } = req.body;
 
-        if (!name || !password) {
-            return res.status(400).send("All fields are required");
-        }
-
-        // Check existing user
-        const [user] = await db.execute(
-            "SELECT * FROM users WHERE name = ?",
-            [name]
-        );
-
-        if (user.length > 0) {
-            return res.status(400).send("User already exists");
+        if (!email || !password) {
+            return res.status(400).json({
+                message: "Email and password are required"
+            });
         }
 
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Save user
-        await db.execute(
-            "INSERT INTO users (name, password) VALUES (?, ?)",
-            [name, hashedPassword]
-        );
+        // Save to database
+        const sql = "INSERT INTO users (email, password) VALUES (?, ?)";
 
-        res.send("User saved successfully");
+        const [result] = await db.query(sql, [
+            email,
+            hashedPassword
+        ]);
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).send(error.message);
-    }
-});
-
-// Get users
-app.get("/api/admin", async (req, res) => {
-    try {
-        const [rows] = await db.execute(
-            // users
-            "SELECT id, name FROM my_table"
-        );
-
-        res.json(rows);
+        res.status(201).json({
+            message: "User saved successfully",
+            id: result.insertId
+        });
 
     } catch (error) {
         console.error(error);
-        res.status(500).send(error.message);
+
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
     }
 });
-
-// Show table structure
-app.get("/table", async (req, res) => {
-    try {
-        const [rows] = await db.execute(
-            "DESCRIBE users"
-        );
-
-        res.json(rows);
-
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-// connectDB().then(() => {
-//     app.listen(3000, () => {
-//         console.log("Server running on port 3000");
-//     });
-// });
 
 const PORT = process.env.PORT || 3000;
 
 connectDB().then(() => {
     app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+        console.log(`🚀 Server running on port ${PORT}`);
     });
 });
+
+
+
+
+
+
+
+
+
+
+// mysql://root:PDGSxJXaIQOWeKVqrGhIUiPbuZuAwwNo@reseau.proxy.rlwy.net:33677/railway
