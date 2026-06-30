@@ -73,7 +73,8 @@ app.post("/api", async (req, res) => {
 app.get("/api/admin", async (req, res) => {
     try {
         const [rows] = await db.execute(
-            "SELECT id, name FROM users"
+            // users
+            "SELECT id, name FROM my_table"
         );
 
         res.json(rows);
